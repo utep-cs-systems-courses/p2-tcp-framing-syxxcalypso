@@ -7,7 +7,6 @@ server_port = int(sys.argv[1])
 def run():
 
     if not (sock := open_socket(server_host, server_port)):
-        print('[EE] (CONNECT) :: [FATAL] Cannot establish socket connection')
         return
 
     msg = sys.argv[2]
@@ -21,17 +20,13 @@ def open_socket(server_host, server_port):
         addr_family, sock_type, proto, canonical_name, sock_addr = addr_info
         try:
             sock = socket.socket(addr_family, sock_type, proto)
-            print(f'[==] (CREATE SOCKET) :: AF<{addr_family}> TYPE<{sock_type}> PROTOCOL<{proto}>')
         except socket.error as err:
-            print('[EE] (CREATE SOCKET) :: err')
             sock = None
             continue
 
         try:
             sock.connect(sock_addr)
-            print(f'[==] (CONNECT) :: TARGET<{sock_addr}>')
         except socket.error as err:
-            print(f'[EE] (CONNECT) :: {err}')
             sock.close()
             sock = None
             continue
@@ -45,18 +40,14 @@ def send(msg, sock):
 
     while len(data):
         sent = sock.send(data.encode())
-        print(f'[==] (SEND) :: MSG<{data[:sent]}>')
         data = data[sent:]
 
     reply = sock.recv(1024).decode()
-    print(f'[==] (RECEIVE) :: MSG<{reply}>')
 
     while 1:
         reply = sock.recv(1024).decode()
-        print("Received '%s'" % reply)
         if len(reply) == 0:
             break
-    print(f'[==] (REPLY EMPTY) :: Closing')
 
     sock.shutdown(socket.SHUT_WR)
     sock.close()
