@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import os
 import socket, sys, re
 from tcp_parser import TcpParser                                        # import Class
 
@@ -12,10 +13,10 @@ def run():
         sock.listen(1)
 
         conn, addr = sock.accept()
-        print(f'[==] (ACCEPT) :: ADDR<{addr}>')
+        os.write(2, f'[==] (ACCEPT) :: ADDR<{addr}>'.encode())
 
         my_parser = TcpParser()                                         #instantiate TcpParser
-        my_parser.temp_buffer = conn.recv(4).decode()                   #recv 4 bytes, ->TcpParser
+        my_parser.temp_buffer = conn.recv(4)                            #recv 4 bytes, ->TcpParser
 
         while True:                                                     #infinite loop to run
 
@@ -25,13 +26,10 @@ def run():
                 break
 
             elif result == False:
-                my_parser.temp_buffer += conn.recv(4).decode()
+                my_parser.temp_buffer += conn.recv(4)
 
-        print("Out of Infinite Loop")
-
-        while len(msg):
-            sent = conn.send(msg.encode())
-            msg = msg[sent:]
+        for msg in my_parser.final_buffer:
+            os.write(1, msg)
 
     except KeyboardInterrupt:
         conn.close()
