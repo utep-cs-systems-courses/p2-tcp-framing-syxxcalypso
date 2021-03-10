@@ -2,6 +2,8 @@
 # CS 4375: Lab 2
 #
 # Collaborator: Nick Sims
+import os
+
 
 class TcpParser(object):
     def __init__(self):
@@ -10,10 +12,10 @@ class TcpParser(object):
 
     def parse(self):
         try:
-            self.idx = self.temp_buffer.index(';')
-            self.tokens = self.temp_buffer[:self.idx].split(' ')
+            self.idx = self.temp_buffer.index(b';')
+            self.tokens = self.temp_buffer[:self.idx].split(b' ')
             command = self.tokens[0]
-            self.state = eval("self."+command)
+            self.state = eval("self."+command.decode())
             return True
         except ValueError:                                          # Index failed, need more data
             return False
