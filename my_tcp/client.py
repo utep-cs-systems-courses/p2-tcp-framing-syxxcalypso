@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import socket, sys, re
+import os, socket, sys, re
 
 server_host = '127.0.0.1'
 server_port = int(sys.argv[1])
@@ -9,9 +9,18 @@ def run():
     if not (sock := open_socket(server_host, server_port)):
         return
 
-    msg = sys.argv[2]
-    print(f'DATUM: {msg}')
-    send(msg, sock)
+    f = os.open(sys.argv[2], os.O_RDONLY)
+    while (data := os.read(f, 1024)) != b'':
+        send(data, sock)
+    os.close(f)
+
+    end = b'fin;'
+    while len(end):
+        sent = sock.send(end)
+        end = end[sent:]
+
+    sock.shutdown(socket.SHUT_WR)
+    sock.close()
 
 
 def open_socket(server_host, server_port):
@@ -34,23 +43,12 @@ def open_socket(server_host, server_port):
 
 
 def send(msg, sock):
-    init_frame = f'size {len(msg)};'
-    end_frame = 'fin;'
-    data = init_frame + msg + end_frame
+    init_frame = f'get_size {len(msg)};'.encode()
+    data = init_frame + msg
 
     while len(data):
-        sent = sock.send(data.encode())
+        sent = sock.send(data)
         data = data[sent:]
-
-    reply = sock.recv(1024).decode()
-
-    while 1:
-        reply = sock.recv(1024).decode()
-        if len(reply) == 0:
-            break
-
-    sock.shutdown(socket.SHUT_WR)
-    sock.close()
 
 if __name__ == '__main__':
     run()
