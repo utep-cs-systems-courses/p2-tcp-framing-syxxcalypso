@@ -4,17 +4,30 @@ import os, socket, sys, re
 server_host = '127.0.0.1'
 server_port = int(sys.argv[1])
 
-def run():
+def main():
 
     if not (sock := open_socket(server_host, server_port)):
         return
 
+    msg = f'open {sys.argv[3]};'.encode()                            #msg framing
+    while len(msg):                                                  #send len(msg)
+        sent = sock.send(msg)
+        msg = msg[sent:]
+
+    reply = b''
+    while not b'$' in (reply := reply + sock.recv(1024)):         #!terminate, keep asking 4 data
+        pass
+
+    if reply != b'All good$':
+        os.write(2, 'File in use')
+        return
+
     f = os.open(sys.argv[2], os.O_RDONLY)
-    while (data := os.read(f, 1024)) != b'':
-        send(data, sock)
+    while (data := os.read(f, 1024)) != b'':                        #read data in mem
+        send(data, sock)                                            #continously send data
     os.close(f)
 
-    end = b'fin;'
+    end = b'close;'                                                  #closes file @ server
     while len(end):
         sent = sock.send(end)
         end = end[sent:]
@@ -51,4 +64,4 @@ def send(msg, sock):
         data = data[sent:]
 
 if __name__ == '__main__':
-    run()
+    main()
