@@ -18,7 +18,7 @@ def main():
         while True:
             conn, addr = sock.accept()
             Thread(target=run, args=(conn, addr, files_in_use, lock)).start()   #Start new thread, run run()
-
+                                                                            #mul threads for mul clients
     except KeyboardInterrupt:
         conn.close()
 
@@ -30,9 +30,9 @@ def run(conn, addr, files_in_use, lock):                           #runs threads
 
     while True:                                                     #infinite loop to run
 
-        result = my_parser.initiate()
+        result = my_parser.initiate()                           #.call() state machine
 
-        if result == 'fin':
+        if result == 'fin':                                     #done
             break
 
         elif result == 'Message for client':

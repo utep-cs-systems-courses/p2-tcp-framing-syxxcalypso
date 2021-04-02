@@ -6,13 +6,14 @@ server_port = int(sys.argv[1])
 
 def main():
 
-    if not (sock := open_socket(server_host, server_port)):
-        return
+    if not (sock := open_socket(server_host, server_port)):         #auto setup skt and store in skt var
+        return                                                      #if skt=null; bad
 
-    msg = f'open {sys.argv[3]};'.encode()                            #msg framing
-    while len(msg):                                                  #send len(msg)
-        sent = sock.send(msg)
-        msg = msg[sent:]
+    #python3 client.py 30001 open myfile.txt;
+    msg = f'open {sys.argv[3]};'.encode()                        #msg framing
+    while len(msg):                                              #send len(msg)
+        sent = sock.send(msg)                                    #rtns # of bytes already sent
+        msg = msg[sent:]                                         #stores remaining msg
 
     reply = b''
     while not b'$' in (reply := reply + sock.recv(1024)):         #!terminate, keep asking 4 data
@@ -55,11 +56,11 @@ def open_socket(server_host, server_port):
     return sock
 
 
-def send(msg, sock):
-    init_frame = f'get_size {len(msg)};'.encode()
-    data = init_frame + msg
+def send(msg, sock):                                    #client sends msg
+    init_frame = f'get_size {len(msg)};'.encode()       #frame the msg
+    data = init_frame + msg                             #combine frame with msg
 
-    while len(data):
+    while len(data):                                    #send data
         sent = sock.send(data)
         data = data[sent:]
 
